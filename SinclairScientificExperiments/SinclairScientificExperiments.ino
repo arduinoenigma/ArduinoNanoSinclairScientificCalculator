@@ -263,6 +263,178 @@ void sub(signed char src1[], signed char src2[], signed char dst[], bool hex = f
   }
 }
 
+void compare(signed char src1[], signed char src2[])
+{
+  signed char tmp[11] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  sub(src1, src2, tmp);
+  // Compare sets condition if not borrow
+  //this.model.ccMeaning = this.model.cc ? "less than" : "not less than";
+}
+
+void copy(signed char src[], signed char dst[])
+{
+  getMask();
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      dst[i] = src[i];
+    }
+  }
+}
+
+void all(signed char src[])
+{
+  getMask();
+  signed char digit = 0;
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      signed char newdigit = src[i];
+      src[i] = digit;
+      digit = newdigit;
+    }
+  }
+}
+
+void srl(signed char src[])
+{
+  getMask();
+  signed char digit = 0;
+  for (signed char i = 0; i <= 10; i++)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      signed char newdigit = src[i];
+      src[i] = digit;
+      digit = newdigit;
+    }
+  }
+}
+
+void writeFlag(signed char dest[], signed char val)
+{
+  getMask();
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      // Flip dst if val == -1, otherwise set to val
+      dest[i] = (val < 0) ? (1 - dest[i]) : val;
+    }
+  }
+}
+
+void compareFlags(signed char src1[], signed char src2[])
+{
+  signed char cc = 0;
+  getMask();
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      if (src1[i] != src2[i])
+      {
+        cc = 1;
+      }
+    }
+  }
+  if (cc)
+  {
+    SinclairData.cc = 1;
+    //this.model.ccMeaning = 'flags not equal';
+  }
+}
+
+void exchange(signed char src1[], signed char src2[])
+{
+  getMask();
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      signed char t = src1[i];
+      src1[i] = src2[i];
+      src2[i] = t;
+    }
+  }
+}
+
+void testFlag(signed char src[])
+{
+  signed char cc = 0;
+  getMask();
+  for (signed char i = 10; i >= 0; i--)
+  {
+    if (SinclairData.mask[i] == ' ')
+    {
+      // masked out
+      // continue;
+    }
+    else
+    {
+      if (src[i])
+      {
+        cc = 1;
+      }
+    }
+  }
+  /* Only update cc if bit set */
+  if (cc)
+  {
+    SinclairData.cc = cc;
+    //this.model.ccMeaning = 'flag set';
+  }
+}
+
+void updateD()
+{
+  for (signed char i = 10; i >= 0; i--)
+  {
+    SinclairData.d[i] = 1;
+  }
+
+  SinclairData.dActive += 1;
+  if (SinclairData.dActive > 10)
+  {
+    SinclairData.dActive = 1;
+  }
+  SinclairData.d[SinclairData.dActive - 1] = 0;
+}
+
+
 void setup() {
   // put your setup code here, to run once:
 
@@ -272,7 +444,7 @@ void setup() {
   display(SinclairData.b);
   add(SinclairData.a, SinclairData.b, SinclairData.a);
   display(SinclairData.a);
-  Serial.println("");
+  Serial.println(F(""));
 
   //sub(SinclairData.a, SinclairData.b, SinclairData.a);
   //display(SinclairData.a);
@@ -281,7 +453,15 @@ void setup() {
   display(SinclairData.a);
   sub(SinclairData.b, SinclairData.a, SinclairData.a);
   display(SinclairData.a);
-  Serial.println("");
+  Serial.println(F(""));
+
+  SinclairData.cc = 0;
+  compare(SinclairData.b, SinclairData.a);
+  if (SinclairData.cc) Serial.println(F("less than")); else Serial.println(F("not less than"));
+
+  SinclairData.cc = 0;
+  compare(SinclairData.a, SinclairData.b);
+  if (SinclairData.cc) Serial.println(F("less than")); else Serial.println(F("not less than"));
 
 }
 
@@ -294,7 +474,7 @@ void display(signed char src1[]) {
   for (byte i = 0; i < 11; i++)
   {
     Serial.print((int)src1[i]);
-    Serial.print(' ');
+    Serial.print(F(" "));
   }
-  Serial.println("");
+  Serial.println(F(""));
 }
