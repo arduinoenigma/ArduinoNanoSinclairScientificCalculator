@@ -97,6 +97,7 @@ const unsigned long LISTOPSWITHK = 1007135334;
 char key = 0;
 char p = 0;
 boolean resetRequested = false;
+boolean displayCleared = false;
 
 signed char digits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 char PrintableKeys[19] = "12+E0v-378X654/9^C";
@@ -151,20 +152,36 @@ struct SinclairData_t
 void backgroundWork() {
 
   stepAndScan();
+  stepAndScan();
+  stepAndScan();
+  stepAndScan();
+  stepAndScan();
+
 }
 
-//TODO: enable display digits 0 and 1, move 2..5 to 0.3 and add digits 7 and 8
 void updateDisplay() {
 
-  digits[0] = 0;
-  digits[1] = 0;
-  digits[2] = (SinclairData.a[0] == 0) ? 99 : 10;
-  digits[3] = SinclairData.a[4];
-  digits[4] = SinclairData.a[5];
-  digits[5] = SinclairData.a[6]; //7 and 8 also when we get digits 0 and 1 working
+  digits[0] = (SinclairData.a[0] == 0) ? 99 : 10;;
+  digits[1] = SinclairData.a[4];
+  digits[2] = SinclairData.a[5];
+  digits[3] = SinclairData.a[6];
+  digits[4] = SinclairData.a[7];
+  digits[5] = SinclairData.a[8];
   digits[6] = (SinclairData.a[1] == 0) ? 99 : 10;
   digits[7] = SinclairData.a[2];
   digits[8] = SinclairData.a[3];
+
+  /*
+    digits[0] = 0;
+    digits[1] = 0;
+    digits[2] = (SinclairData.a[0] == 0) ? 99 : 10;
+    digits[3] = SinclairData.a[4];
+    digits[4] = SinclairData.a[5];
+    digits[5] = SinclairData.a[6]; //7 and 8 also when we get digits 0 and 1 working
+    digits[6] = (SinclairData.a[1] == 0) ? 99 : 10;
+    digits[7] = SinclairData.a[2];
+    digits[8] = SinclairData.a[3];
+  */
 
   display();
 }
@@ -172,7 +189,7 @@ void updateDisplay() {
 void setup() {
   // put your setup code here, to run once:
 
-  Serial.begin(250000);
+  //Serial.begin(250000);
 
   allKeyRowOff();
 
@@ -193,21 +210,30 @@ void loop() {
 
   updateDisplay();
 
+  if (resetRequested) {
+
+    resetRequested = false;
+
+    SinclairData.address = 0;
+    SinclairData.keyStrobe = 0;
+    SinclairData.dActive = 1;
+
+    if (!displayCleared) {
+      displayCleared = true;
+      //give it a chance to clear the display
+      for (byte i = 0; i < 8; i++)
+      {
+        step();
+      }
+    }
+  }
+
 }
 
 void stepAndScan() {
 
-  step();
-
-  if ((resetRequested) && (SinclairData.dActive == 8)) {
-    resetRequested = false;
-    SinclairData.address = 0;
-    SinclairData.keyStrobe = 0;
-  }
-
   SinclairData.keyStrobe = 0;
-
-  //Serial.println(SinclairData.dActive - 1);
+  p = 0;
 
   if (key != 0)
   {
@@ -216,16 +242,25 @@ void stepAndScan() {
 
     if (p == keysKN[SinclairData.dActive - 1]) {
       SinclairData.keyStrobe = KN;
-      //Serial.println(F("KN"));
     }
 
     if (p == keysKO[SinclairData.dActive - 1]) {
       SinclairData.keyStrobe = KO;
-      //Serial.println(F("KP"));
     }
 
     if (p == 'C') {
       resetRequested = true;
     }
   }
+
+  if (!resetRequested)
+  {
+    step();
+    displayCleared = false;
+  }
+  else
+  {
+    delayMicroseconds(500);
+  }
+
 }
