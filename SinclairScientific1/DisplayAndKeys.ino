@@ -14,6 +14,8 @@ GPIO<BOARD::D3> SegmentF;
 GPIO<BOARD::D8> SegmentG;
 GPIO<BOARD::D6> SegmentDP;
 
+GPIO<BOARD::D1>  Digit1;
+GPIO<BOARD::D0>  Digit2;
 GPIO<BOARD::D19> Digit3;
 GPIO<BOARD::D18> Digit4;
 GPIO<BOARD::D17> Digit5;
@@ -65,6 +67,10 @@ void allSegmentInput() {
 }
 
 void allDigitOutput() {
+
+  Digit1.output();
+  Digit2.output();
+
   Digit3.output();
   Digit4.output();
   Digit5.output();
@@ -75,6 +81,9 @@ void allDigitOutput() {
 }
 
 void allDigitOff() {
+  Digit1.low();
+  Digit2.low();
+
   Digit3.low();
   Digit4.low();
   Digit5.low();
@@ -229,8 +238,10 @@ void selectDigit(byte digit) {
 
   switch (digit) {
     case 0:
+      Digit1.high();
       break;
     case 1:
+      Digit2.high();
       break;
     case 2:
       Digit3.high();
@@ -263,7 +274,7 @@ void display() {
   for (byte i = 0; i < 9; i++) {
 
     //SINCLAIR behavior: turn decimal point on automatically at fixed position
-    if (i == 3) {
+    if (i == 1) {
       dp = true;
     }
     else
