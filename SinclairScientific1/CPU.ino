@@ -1,3 +1,13 @@
+// Arduino Port of
+//
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// The goal of this project is to run the following simulator: http://righto.com/sinclair
+// on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
+// @arduinoenigma 2018
+
 boolean opsWithK(byte opcode) {
 
   return (LISTOPSWITHK & (1UL << opcode));
@@ -677,6 +687,5 @@ void step()
   // Update D state
   updateD();
 
-  displayInstruction(68);
-  //displayArray(SinclairData.a);
+  displayInstruction(68); // if printing is enabled, do a println after executing a line of code
 }
