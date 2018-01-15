@@ -8,6 +8,7 @@
 // on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
 // @arduinoenigma 2018
 
+// https://github.com/mikaelpatel/Arduino-GPIO
 #include "GPIO.h"
 
 extern void display();
