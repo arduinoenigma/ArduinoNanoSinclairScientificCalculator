@@ -88,13 +88,11 @@ const char masks [][MASK_LENGTH] PROGMEM = {
 //const unsigned long LISTOPSWITHK = 000111100000001111010101001100110b;
 const unsigned long LISTOPSWITHK = 1007135334;
 
-char keyindex = 0;
 char key = 0;
 boolean resetRequested = false;
 boolean displayCleared = false;
 
 signed char digits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-const char PrintableKeys[19] = "12+E0v-378X654/9^C";
 
 const char keysKN[10] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', 0};
 const char keysKO[10] = {'C', 'v', '+', '-', '/', 'X', '^', 'E', '0', 0};
@@ -180,7 +178,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  keyindex = readKey();
+  key = readKey();
 
   stepAndScan();
 
@@ -208,17 +206,16 @@ void loop() {
 void stepAndScan() {
 
   SinclairData.keyStrobe = 0;
-  key = 0;
 
-  if (keyindex != 0)
+  if (key != 0)
   {
-    key = PrintableKeys[keyindex - 1];
+    byte dActive = SinclairData.dActive - 1;
 
-    if (key == keysKN[SinclairData.dActive - 1]) {
+    if (key == keysKN[dActive]) {
       SinclairData.keyStrobe = KN;
     }
 
-    if (key == keysKO[SinclairData.dActive - 1]) {
+    if (key == keysKO[dActive]) {
       SinclairData.keyStrobe = KO;
     }
 
