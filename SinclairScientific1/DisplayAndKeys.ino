@@ -296,6 +296,8 @@ void display() {
   }
 }
 
+const char PrintableKeys[19] = "12+E0v-378X654/9^C";
+
 byte readKey() {
 
   byte key = 0;
@@ -342,6 +344,11 @@ byte readKey() {
 
   allKeyRowOff();
   allSegmentOutput();
+
+  if (key)
+  {
+    key = PrintableKeys[key - 1];
+  }
 
   return key;
 }
