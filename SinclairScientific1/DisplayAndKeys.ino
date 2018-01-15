@@ -1,5 +1,15 @@
-//tedious but fast, most lines compile to 1 instruction.
-//this whole file compiles to less than 1KB of code
+// Arduino Port of
+//
+// TI calculator simulator
+// Ken Shirriff, http://righto.com/ti
+// Based on patent US3934233
+//
+// The goal of this project is to run the following simulator: http://righto.com/sinclair
+// on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
+// @arduinoenigma 2018
+
+// tedious but fast, most lines compile to 1 instruction.
+// this whole file compiles to less than 1KB of code
 
 GPIO<BOARD::D14> KeyRowB;
 GPIO<BOARD::D15> KeyRowC;
@@ -67,10 +77,8 @@ void allSegmentInput() {
 }
 
 void allDigitOutput() {
-
   Digit1.output();
   Digit2.output();
-
   Digit3.output();
   Digit4.output();
   Digit5.output();
@@ -83,7 +91,6 @@ void allDigitOutput() {
 void allDigitOff() {
   Digit1.low();
   Digit2.low();
-
   Digit3.low();
   Digit4.low();
   Digit5.low();
@@ -289,7 +296,7 @@ void display() {
   }
 }
 
-char readKey() {
+byte readKey() {
 
   byte key = 0;
 
