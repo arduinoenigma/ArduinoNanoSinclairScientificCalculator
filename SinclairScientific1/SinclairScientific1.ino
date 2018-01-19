@@ -20,6 +20,8 @@ extern void allDigitOff();
 extern void step();
 extern byte readKey();
 
+extern GPIO<BOARD::D15> KeyRowC;
+
 const unsigned int objectCode[] PROGMEM = {
   1408, 1392, 1792, 1824, 1860, 1808, 1360, 1376,
   518, 1319, 1360, 1376, 9, 1360, 1908, 1072,
@@ -122,15 +124,17 @@ struct SinclairData_t
 
   signed char  d[11] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
 
-  // Currently active D value 1-11. d[dActive-1] == 0
-  byte dActive = 1;
+  byte dActive = 1;          // Currently active D value 1-11. d[dActive-1] == 0
   signed char cc = 0;
   byte keyPressed = 0;
-  // 'KO' or 'KP' if a keyboard input line is active, i.e. dActive and keyPressed match in the key matrix
-  byte keyStrobe = 0;
-  unsigned int address = 0; // PROGRAM COUNTER
-  byte display = 1; // Flag for display on
+
+  byte keyStrobe = 0;        // 'KO' or 'KP' if a keyboard input line is active, i.e. dActive and keyPressed match in the key matrix
+  unsigned int address = 0;  // PROGRAM COUNTER
+  byte display = 1;          // Flag for display on
   char mask[MASK_LENGTH];
+
+  byte showwork = 0;         // when 0, display flag controls LED, when 1, LED always on
+  byte speed = 1;            // 0 - slow 1 - normal 2 - fast
 } SinclairData;
 
 // this function is called by the display routines to show a digit for 2ms before moving to the next one.
@@ -141,10 +145,21 @@ struct SinclairData_t
 
 void backgroundWork() {
 
-  delayMicroseconds(142);
-  stepAndScan();
-  //stepAndScan(); //any more makes it too fast
-  delayMicroseconds(142);
+  switch (SinclairData.speed)
+  {
+    case 0:
+      delayMicroseconds(700);
+      break;
+    case 1:
+      delayMicroseconds(28);
+      stepAndScan();
+      delayMicroseconds(28);
+      break;
+    case 2:
+      stepAndScan();
+      stepAndScan();
+      break;
+  }
 }
 
 void updateDisplay() {
@@ -167,13 +182,31 @@ void setup() {
 
   //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1
 
-  allKeyRowOff();
-
-  allSegmentOutput();
   allSegmentOff();
+  allSegmentOutput();
 
-  allDigitOutput();
   allDigitOff();
+  allDigitOutput();
+
+  key = readKey();
+  SinclairData.showwork = 1;  //takes effect only on 1,2,3
+
+  switch (key)
+  {
+    case '1':
+      SinclairData.speed = 0;  //slow, display on
+      break;
+    case '2':
+      SinclairData.speed = 1;  //normal, display on
+      break;
+    case '3':
+      SinclairData.speed = 2;  //fast, display on
+      break;
+    default:
+      SinclairData.speed = 1;
+      SinclairData.showwork = 0; //normal speed, display off during calculations
+      break;
+  }
 }
 
 void loop() {
@@ -183,13 +216,13 @@ void loop() {
 
   stepAndScan();
 
-  if (SinclairData.display) {
+  if ((SinclairData.display) || (SinclairData.showwork)) {
     updateDisplay();
   }
   else
   {
     //it runs too fast with the display off...
-    delayMicroseconds(45);
+    delayMicroseconds(40);
   }
 
   if (resetRequested) {
