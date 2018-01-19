@@ -438,6 +438,7 @@ void step()
       case 26: // AKCN: A+K -> A until key down on N or D11 [sic]
         // Patent says sets condition if key down, but real behavior
         // is to set condition if addition overflows (i.e. no key down)
+        SinclairData.display = 0;
         add(SinclairData.a, getMask(), SinclairData.a);
         if (SinclairData.keyStrobe == KN)
         {
@@ -656,6 +657,7 @@ void step()
     displayInstruction(61);
     if (SinclairData.keyStrobe == KO)
     {
+      SinclairData.display = 0;
       displayInstruction(62);
       nextAddress = instruction & 0x1ff;
     }
@@ -668,6 +670,7 @@ void step()
     displayInstruction(63);
     if (SinclairData.keyStrobe == KP)
     {
+      SinclairData.display = 0;
       displayInstruction(64);
       nextAddress = instruction & 0x1ff;
     }
