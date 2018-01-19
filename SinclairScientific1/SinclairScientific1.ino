@@ -183,7 +183,14 @@ void loop() {
 
   stepAndScan();
 
-  updateDisplay();
+  if (SinclairData.display) {
+    updateDisplay();
+  }
+  else
+  {
+    //it runs too fast with the display off...
+    delayMicroseconds(45);
+  }
 
   if (resetRequested) {
 
