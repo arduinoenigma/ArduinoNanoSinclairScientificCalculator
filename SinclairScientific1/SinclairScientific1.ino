@@ -20,8 +20,6 @@ extern void allDigitOff();
 extern void step();
 extern byte readKey();
 
-extern GPIO<BOARD::D15> KeyRowC;
-
 const unsigned int objectCode[] PROGMEM = {
   1408, 1392, 1792, 1824, 1860, 1808, 1360, 1376,
   518, 1319, 1360, 1376, 9, 1360, 1908, 1072,
@@ -96,6 +94,9 @@ boolean resetRequested = false;
 boolean displayCleared = false;
 
 signed char digits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+// keysKN and keysKO must match PrintableKeys on DisplayAndKeys.ino
+//const char PrintableKeys[19] = "12+E0v-378X654/9^C";
 
 const char keysKN[10] = {'1', '2', '3', '4', '5', '6', '7', '8', '9', 0};
 const char keysKO[10] = {'C', 'v', '+', '-', '/', 'X', '^', 'E', '0', 0};
@@ -177,73 +178,6 @@ void updateDisplay() {
   display();
 }
 
-void setup() {
-  // put your setup code here, to run once:
-
-  //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1
-
-  allSegmentOff();
-  allSegmentOutput();
-
-  allDigitOff();
-  allDigitOutput();
-
-  key = readKey();
-  SinclairData.showwork = 1;  //takes effect only on 1,2,3
-
-  switch (key)
-  {
-    case '1':
-      SinclairData.speed = 0;  //slow, display on
-      break;
-    case '2':
-      SinclairData.speed = 1;  //normal, display on
-      break;
-    case '3':
-      SinclairData.speed = 2;  //fast, display on
-      break;
-    default:
-      SinclairData.speed = 1;
-      SinclairData.showwork = 0; //normal speed, display off during calculations
-      break;
-  }
-}
-
-void loop() {
-  // put your main code here, to run repeatedly:
-
-  key = readKey();
-
-  stepAndScan();
-
-  if ((SinclairData.display) || (SinclairData.showwork)) {
-    updateDisplay();
-  }
-  else
-  {
-    //it runs too fast with the display off...
-    delayMicroseconds(40);
-  }
-
-  if (resetRequested) {
-
-    resetRequested = false;
-
-    SinclairData.address = 0;
-    SinclairData.keyStrobe = 0;
-    SinclairData.dActive = 1;
-
-    if (!displayCleared) {
-      displayCleared = true;
-      //give it a chance to clear the display
-      for (byte i = 0; i < 8; i++)
-      {
-        step();
-      }
-    }
-  }
-}
-
 void stepAndScan() {
 
   SinclairData.keyStrobe = 0;
@@ -273,5 +207,80 @@ void stepAndScan() {
   {
     step();
     displayCleared = false;
+  }
+}
+
+void setup() {
+  // put your setup code here, to run once:
+
+  //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1
+
+  allSegmentOff();
+  allSegmentOutput();
+
+  allDigitOff();
+  allDigitOutput();
+
+  key = readKey();
+  SinclairData.showwork = 1;  //takes effect only on 1,2,3
+
+  switch (key)
+  {
+    case '0':
+      displaySelfTest();
+      SinclairData.speed = 1;
+      SinclairData.showwork = 0; //normal speed, display off during calculations
+      break;
+    case '1':
+      SinclairData.speed = 0;  //slow, display on
+      break;
+    case '2':
+      SinclairData.speed = 1;  //normal, display on
+      break;
+    case '3':
+      SinclairData.speed = 2;  //fast, display on
+      break;
+    default:
+      SinclairData.speed = 1;
+      SinclairData.showwork = 0; //normal speed, display off during calculations
+      break;
+  }
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  key = readKey();
+
+  stepAndScan();
+
+  byte displayon = SinclairData.display + SinclairData.showwork;
+
+  //if ((SinclairData.display) || (SinclairData.showwork)) {
+  if (displayon) {
+    updateDisplay();
+  }
+  else
+  {
+    //it runs too fast with the display off...
+    delayMicroseconds(40);
+  }
+
+  if (resetRequested) {
+
+    resetRequested = false;
+
+    SinclairData.address = 0;
+    SinclairData.keyStrobe = 0;
+    SinclairData.dActive = 1;
+
+    if (!displayCleared) {
+      displayCleared = true;
+      //give it a chance to clear the display
+      for (byte i = 0; i < 8; i++)
+      {
+        step();
+      }
+    }
   }
 }
