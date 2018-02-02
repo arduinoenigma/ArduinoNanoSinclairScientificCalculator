@@ -233,6 +233,15 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentF.high();
       SegmentG.low();
       break;
+    case 99:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.high();
+      SegmentF.high();
+      SegmentG.high();
+      break;
     default:
       allSegmentOff();
       break;
@@ -293,6 +302,101 @@ void display() {
     selectDigit(i);
 
     backgroundWork();
+  }
+}
+
+void displaySelfTest() {
+  char c = 0;
+  bool longtest = false;
+
+  // show 8.8.8.8.8.8.8.8.8.
+  for (byte t = 0; t < 75; t++) {
+    for (byte j = 0; j < 9; j++) {
+      c = readKey();
+      if (c == '8') {
+        longtest = true;
+      }
+      if (c == 'C') {
+        return;
+      }
+      outputDigit(8, true);
+      selectDigit(j);
+      delay(2);
+    }
+  }
+
+  if (!longtest) {
+    return;
+  }
+
+  // cycle through 0..9 - on all digits at the same time
+  for (byte i = 0; i < 12; i++) {
+    for (byte t = 0; t < 100; t++) {
+      for (byte j = 0; j < 9; j++) {
+        if (readKey() == 'C') {
+          return;
+        }
+        outputDigit((i != 11) ? i : 99, (i == 11));
+        selectDigit(j);
+        delay(2);
+      }
+    }
+  }
+
+  // show 12345678
+  for (byte t = 0; t < 100; t++) {
+    for (byte j = 0; j < 9; j++) {
+      if (readKey() == 'C') {
+        return;
+      }
+      outputDigit(j, false);
+      selectDigit(j);
+      delay(2);
+    }
+  }
+
+  // move the dot from left to right on 12345678
+  for (byte i = 0; i < 9; i++) {
+    for (byte t = 0; t < 100; t++) {
+      for (byte j = 0; j < 9; j++) {
+        if (readKey() == 'C') {
+          return;
+        }
+        outputDigit(j, i == j);
+        selectDigit(j);
+        delay(2);
+      }
+    }
+  }
+
+  // move dot from right to left on blank display
+  for (byte j = 9; j > 0; j--) {
+    for (byte t = 0; t < 100; t++) {
+      for (byte i = 0; i < 9; i++) {
+        if (readKey() == 'C') {
+          return;
+        }
+        outputDigit(99, i == (j - 1));
+        selectDigit(i);
+        delay(2);
+      }
+    }
+  }
+
+  // cycle through 0..9 - on each digit individually
+  for (byte j = 0; j < 9; j++) {
+    for (byte i = 0; i < 12; i++) {
+      for (byte t = 0; t < 20; t++) {
+        for (byte k = 0; k < 9; k++) {
+          if (readKey() == 'C') {
+            return;
+          }
+          outputDigit( ((k == j) && (i != 11)) ? i : 99, ((k == j) && (i == 11)));
+          selectDigit(k);
+          delay(2);
+        }
+      }
+    }
   }
 }
 
