@@ -304,8 +304,12 @@ void updateD()
 
 void step()
 {
+  static unsigned long maxexectime = 148;
+
   //Serial.print(F("addr:"));
   //Serial.print(SinclairData.address);
+
+  unsigned long entrytime = micros();
 
   unsigned int instruction = getInstruction(SinclairData.address);
   byte classBits = instruction >> 9;
@@ -438,7 +442,7 @@ void step()
       case 26: // AKCN: A+K -> A until key down on N or D11 [sic]
         // Patent says sets condition if key down, but real behavior
         // is to set condition if addition overflows (i.e. no key down)
-        SinclairData.display = 0;
+        //SinclairData.display = 0; //comment this line to glitch the display when a number key is pressed (actual hardware behavior)
         add(SinclairData.a, getMask(), SinclairData.a);
         if (SinclairData.keyStrobe == KN)
         {
@@ -691,4 +695,16 @@ void step()
   updateD();
 
   displayInstruction(68); // if printing is enabled, do a println after executing a line of code
+
+  unsigned long exectime = micros() - entrytime;
+
+  if (exectime > maxexectime)
+  {
+    maxexectime = exectime;
+    //outputlong(exectime);
+  }
+  else
+  {
+    delayMicroseconds(maxexectime - exectime);
+  }
 }
