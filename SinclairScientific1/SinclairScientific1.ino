@@ -10,15 +10,25 @@
 
 // https://github.com/mikaelpatel/Arduino-GPIO
 #include "GPIO.h"
+#include <SoftwareSerial.h>
 
-extern void display();
-extern void allKeyRowOff();
 extern void allSegmentOutput();
 extern void allSegmentOff();
+extern void allSegmentInput();
 extern void allDigitOutput();
 extern void allDigitOff();
-extern void step();
+extern void allKeyRowOff();
+extern void allKeyRowIdle();
+extern void outputDigit(signed char, bool dp = false);
+extern void selectDigit(byte);
+extern void display();
+extern void displaySelfTest();
 extern byte readKey();
+
+extern void step();
+
+//These are the 320 instructions that performed all the tasks on the Sinclair Scientific.
+//the rest of this program is to execute and interface these instructions to todays hardware
 
 const unsigned int objectCode[] PROGMEM = {
   1408, 1392, 1792, 1824, 1860, 1808, 1360, 1376,
@@ -91,7 +101,6 @@ const unsigned long LISTOPSWITHK = 1007135334;
 
 char key = 0;
 boolean resetRequested = false;
-boolean displayCleared = false;
 
 signed char digits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -140,43 +149,101 @@ struct SinclairData_t
 
 // this function is called by the display routines to show a digit for 2ms before moving to the next one.
 // can do useful work here... instead of delay();
-// Sin 1 takes about 7.5 seconds.
-// Arccos .2 takes about 15 seconds
-// Arccos of a very small value (e.g. 0.0005) goes into an almost-infinite loop and takes 1 minute, 48 seconds to complete
 
 void backgroundWork() {
 
-  switch (SinclairData.speed)
-  {
-    case 0:
-      delayMicroseconds(700);
-      break;
-    case 1:
-      delayMicroseconds(28);
-      stepAndScan();
-      delayMicroseconds(28);
-      break;
-    case 2:
-      stepAndScan();
-      stepAndScan();
-      break;
-  }
 }
 
 void updateDisplay() {
 
-  digits[0] = (SinclairData.a[0] == 0) ? 99 : 10;
-  digits[1] = SinclairData.a[4];
-  digits[2] = SinclairData.a[5];
-  digits[3] = SinclairData.a[6];
-  digits[4] = SinclairData.a[7];
-  digits[5] = SinclairData.a[8];
-  digits[6] = (SinclairData.a[1] == 0) ? 99 : 10;
-  digits[7] = SinclairData.a[2];
-  digits[8] = SinclairData.a[3];
+  byte displayon = SinclairData.display + SinclairData.showwork;
 
-  display();
+  bool dp;
+
+  byte showdigit;
+  byte digitoff = 99;
+  byte digiton = 99;
+
+  switch (SinclairData.dActive)
+  {
+    case 1:
+      digiton = (SinclairData.a[0] == 0) ? 99 : 10;
+      break;
+
+    case 2:
+      digiton = SinclairData.a[4];
+      break;
+
+    case 3:
+      digiton = SinclairData.a[5];
+      break;
+
+    case 4:
+      digiton = SinclairData.a[6];
+      break;
+
+    case 5:
+      digiton = SinclairData.a[7];
+      break;
+
+    case 6:
+      digiton = SinclairData.a[8];
+      break;
+
+    case 7:
+      digiton = (SinclairData.a[1] == 0) ? 99 : 10;
+      break;
+
+    case 8:
+      digiton = SinclairData.a[2];
+      break;
+
+    case 9:
+      digiton = SinclairData.a[3];
+      break;
+  }
+
+  // attempt to have this block take same time to run whether a digit or blank is displayed
+  if (displayon) {
+    showdigit = digiton;
+  }
+  else {
+    showdigit = digitoff;
+  }
+
+  //SINCLAIR behavior: turn decimal point on automatically at fixed position
+  //dot stays on whether the rest of the display is on or off
+  if (SinclairData.dActive == 2) {
+    dp = true;
+  }
+  else
+  {
+    dp = false;
+  }
+
+  outputDigit(showdigit, dp);
+  selectDigit(SinclairData.dActive - 1);
+
+  // adjust case 1 for the following:
+  // Sin 1 takes about 7.3 seconds.
+  // Arccos .2 takes about 13.6 seconds
+  // Arctan 1 takes about 6.6 seconds
+  // Arccos of a very small value (e.g. 0.0001) goes into an almost-infinite loop and takes 1 minute, 38 seconds to complete
+
+  switch (SinclairData.speed)
+  {
+    case 0:
+      delayMicroseconds(2000);
+      break;
+    case 1:
+      delayMicroseconds(150);
+      break;
+    case 2:
+      delayMicroseconds(50);
+      break;
+  }
 }
+
 
 void stepAndScan() {
 
@@ -199,14 +266,9 @@ void stepAndScan() {
     }
   }
 
-  if (resetRequested)
-  {
-    delayMicroseconds(50);
-  }
-  else
+  if (!resetRequested)
   {
     step();
-    displayCleared = false;
   }
 }
 
@@ -252,19 +314,9 @@ void loop() {
 
   key = readKey();
 
+  updateDisplay();
+
   stepAndScan();
-
-  byte displayon = SinclairData.display + SinclairData.showwork;
-
-  //if ((SinclairData.display) || (SinclairData.showwork)) {
-  if (displayon) {
-    updateDisplay();
-  }
-  else
-  {
-    //it runs too fast with the display off...
-    delayMicroseconds(40);
-  }
 
   if (resetRequested) {
 
@@ -274,13 +326,14 @@ void loop() {
     SinclairData.keyStrobe = 0;
     SinclairData.dActive = 1;
 
-    if (!displayCleared) {
-      displayCleared = true;
-      //give it a chance to clear the display
-      for (byte i = 0; i < 8; i++)
-      {
-        step();
-      }
+    // SINCLAIR behavior:
+    // when C is pressed show all 0 with a different brightness
+    // skip digits 0 and 6, dot 1
+    // BUG: 7-8/C (shows leading -)
+    for (byte j = 0; j < 9; j++) {
+      outputDigit(((j == 0) || (j == 6)) ? 99 : 0, j == 1);
+      selectDigit(j);
+      delayMicroseconds(27);
     }
   }
 }
