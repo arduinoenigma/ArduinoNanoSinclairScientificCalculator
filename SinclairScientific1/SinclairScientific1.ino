@@ -325,6 +325,9 @@ void loop() {
     SinclairData.address = 0;
     SinclairData.keyStrobe = 0;
     SinclairData.dActive = 1;
+    
+    // since updatedisplay and stepandscan still execute, clear the sign so it does not clash with the 0s belos
+    SinclairData.a[0] = 0;    
 
     // SINCLAIR behavior:
     // when C is pressed show all 0 with a different brightness
