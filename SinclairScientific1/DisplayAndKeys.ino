@@ -283,6 +283,13 @@ void selectDigit(byte digit) {
   }
 }
 
+// this function is called by the display routines to show a digit for 2ms before moving to the next one.
+// can do useful work here... instead of delay();
+
+void backgroundWork() {
+
+}
+
 void display() {
 
   bool dp = false;
