@@ -99,9 +99,6 @@ const char masks [][MASK_LENGTH] PROGMEM = {
 //const unsigned long LISTOPSWITHK = 000111100000001111010101001100110b;
 const unsigned long LISTOPSWITHK = 1007135334;
 
-char key = 0;
-boolean resetRequested = false;
-
 signed char digits[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // keysKN and keysKO must match PrintableKeys on DisplayAndKeys.ino
@@ -145,24 +142,23 @@ struct SinclairData_t
 
   byte showwork = 0;         // when 0, display flag controls LED, when 1, LED always on
   byte speed = 1;            // 0 - slow 1 - normal 2 - fast
+  byte steptime = 148;       // the step() function will take this many microseconds to execute, uses a delay to eat remaining time if it finishes faster.
 } SinclairData;
 
-// this function is called by the display routines to show a digit for 2ms before moving to the next one.
-// can do useful work here... instead of delay();
-
-void backgroundWork() {
-
-}
+boolean resetinprogress = false;
 
 void updateDisplay() {
 
   byte displayon = SinclairData.display + SinclairData.showwork;
 
-  bool dp;
+  bool dp = false; // needed for logic below, keep initialized to false
+  bool dp1;
+  bool dp2;
 
   byte showdigit;
   byte digitoff = 99;
   byte digiton = 99;
+  byte digitpos = 0;
 
   switch (SinclairData.dActive)
   {
@@ -203,26 +199,34 @@ void updateDisplay() {
       break;
   }
 
-  // attempt to have this block take same time to run whether a digit or blank is displayed
-  if (displayon) {
-    showdigit = digiton;
-  }
-  else {
-    showdigit = digitoff;
-  }
+  dp2 = !dp;   // !false
 
-  //SINCLAIR behavior: turn decimal point on automatically at fixed position
-  //dot stays on whether the rest of the display is on or off
+  // SINCLAIR behavior: turn decimal point on automatically at fixed position
+  // dot stays on whether the rest of the display is on or off
+  // this logic attempts to make optimizer do variable copy on dp1 = dp2 and dp1 = dp below.
   if (SinclairData.dActive == 2) {
-    dp = true;
+    dp1 = dp2; // true
   }
   else
   {
-    dp = false;
+    dp1 = dp;  // false
+  }
+
+  // attempt to have this block take same time to run whether a digit or blank is displayed
+  if (displayon) {
+    showdigit = digiton;
+    digitpos = SinclairData.dActive - 1;
+    dp = dp1; // true or false depending on digit shown
+  }
+  else {
+    // SINCLAIR behavior: dot goes brighter when display is off.
+    showdigit = digitoff;
+    digitpos = 1;
+    dp = dp2; // always true
   }
 
   outputDigit(showdigit, dp);
-  selectDigit(SinclairData.dActive - 1);
+  selectDigit(digitpos);
 
   // adjust case 1 for the following:
   // Sin 1 takes about 7.3 seconds.
@@ -230,52 +234,32 @@ void updateDisplay() {
   // Arctan 1 takes about 6.6 seconds
   // Arccos of a very small value (e.g. 0.0001) goes into an almost-infinite loop and takes 1 minute, 38 seconds to complete
 
-  switch (SinclairData.speed)
+  if (resetinprogress == false)
   {
-    case 0:
-      delayMicroseconds(2000);
-      break;
-    case 1:
-      delayMicroseconds(150);
-      break;
-    case 2:
-      delayMicroseconds(50);
-      break;
-  }
-}
-
-
-void stepAndScan() {
-
-  SinclairData.keyStrobe = 0;
-
-  if (key != 0)
-  {
-    byte dActive = SinclairData.dActive - 1;
-
-    if (key == keysKN[dActive]) {
-      SinclairData.keyStrobe = KN;
-    }
-
-    if (key == keysKO[dActive]) {
-      SinclairData.keyStrobe = KO;
-    }
-
-    if (key == 'C') {
-      resetRequested = true;
+    switch (SinclairData.speed)
+    {
+      case 0:
+        delayMicroseconds(2000);
+        break;
+      case 1:
+        delayMicroseconds(154);
+        break;
+      case 2:
+        delayMicroseconds(50);
+        break;
     }
   }
-
-  if (!resetRequested)
+  else
   {
-    step();
+    // SINCLAIR behavior: makes the display dim when C is pressed, SinclairData.steptime must be reduced below 148 for this delay to take effect.
+    delayMicroseconds(50);
   }
 }
 
 void setup() {
   // put your setup code here, to run once:
 
-  //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1
+  //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1, see UseSoftwareSerial.ino
 
   allSegmentOff();
   allSegmentOutput();
@@ -283,7 +267,7 @@ void setup() {
   allDigitOff();
   allDigitOutput();
 
-  key = readKey();
+  char key = readKey();
   SinclairData.showwork = 1;  //takes effect only on 1,2,3
 
   switch (key)
@@ -312,31 +296,41 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  key = readKey();
+  char key = readKey();
+
+  SinclairData.keyStrobe = 0;
+
+  if (key != 0)
+  {
+    byte dActive = SinclairData.dActive - 1;
+
+    if (key == keysKN[dActive]) {
+      SinclairData.keyStrobe = KN;
+    }
+
+    if (key == keysKO[dActive]) {
+      SinclairData.keyStrobe = KO;
+    }
+
+    if (key == 'C') {
+      if (resetinprogress == false) {
+        SinclairData.address = 0;
+        SinclairData.keyStrobe = 0;
+        SinclairData.dActive = 1;
+        SinclairData.steptime = 10; // speed up step() function so updateDisplay() function can control brightness via smaller delayMicrososeconds()
+        resetinprogress = true;
+      }
+    }
+  }
 
   updateDisplay();
+  step();
 
-  stepAndScan();
-
-  if (resetRequested) {
-
-    resetRequested = false;
-
-    SinclairData.address = 0;
-    SinclairData.keyStrobe = 0;
-    SinclairData.dActive = 1;
-    
-    // since updatedisplay and stepandscan still execute, clear the sign so it does not clash with the 0s belos
-    SinclairData.a[0] = 0;    
-
-    // SINCLAIR behavior:
-    // when C is pressed show all 0 with a different brightness
-    // skip digits 0 and 6, dot 1
-    // BUG: 7-8/C (shows leading -)
-    for (byte j = 0; j < 9; j++) {
-      outputDigit(((j == 0) || (j == 6)) ? 99 : 0, j == 1);
-      selectDigit(j);
-      delayMicroseconds(27);
+  if (resetinprogress)
+  {
+    if (SinclairData.address > 8) {
+      resetinprogress = false;
+      SinclairData.steptime = 148;
     }
   }
 }
