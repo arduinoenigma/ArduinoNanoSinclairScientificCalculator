@@ -7,9 +7,10 @@
 // The goal of this project is to run the following simulator: http://righto.com/sinclair
 // on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
 // @arduinoenigma 2018
-
+//
 // tedious but fast, most lines compile to 1 instruction.
 // this whole file compiles to less than 1KB of code
+//
 
 GPIO<BOARD::D14> KeyRowB;
 GPIO<BOARD::D15> KeyRowC;
