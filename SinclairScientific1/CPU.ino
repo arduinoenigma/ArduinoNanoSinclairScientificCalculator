@@ -7,26 +7,27 @@
 // The goal of this project is to run the following simulator: http://righto.com/sinclair
 // on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
 // @arduinoenigma 2018
+//
+// BUG: play with .display = 0 to see what ia the absolute minimum that works
+//
 
-//BUG: play with .display = 0 to see what ia the absolute minimum that works
-
-boolean opsWithK(byte opcode) {
-
+boolean opsWithK(byte opcode)
+{
   return (LISTOPSWITHK & (1UL << opcode));
 }
 
-unsigned int getInstruction(unsigned int PC) {
-
+unsigned int getInstruction(unsigned int PC)
+{
   return pgm_read_word_near(objectCode + PC);
 }
 
-byte getMaskNum() {
-
+byte getMaskNum()
+{
   return getInstruction(SinclairData.address) & 0x0f;
 }
 
-char *getMask() {
-
+char *getMask()
+{
   unsigned int instruction = getInstruction(SinclairData.address);
   byte classBits = instruction >> 9;
   byte opcode = (instruction >> 4) & 0x1f;
