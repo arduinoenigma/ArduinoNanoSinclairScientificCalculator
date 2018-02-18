@@ -7,8 +7,38 @@
 // The goal of this project is to run the following simulator: http://righto.com/sinclair
 // on an arduino nano powered custom pcb resembling the original Sinclair Scientific Calculator
 // @arduinoenigma 2018
-
+//
+// To test the up/down buttons press:
+// C up X up / up + up - 5.4105-01
+// C dn X dn / dn + dn - 4.4200-01
+//
+// Sinclair Scientific Glitches implemented:
+// dot stays on when display turns off, dot gets brighter
+// pressing 0 makes dot brighter, other keys not so much
+// pressing a key glitches the number displayed,
+// pressing 7 glitches more numbers than pressing 1
+// pressing C dims the display
+//
+// Glitches not implemented:
+// 1 is brighter than 0
+// - in mantissa is brighter
+//
+// Other Features:
+// press 0 when powering up to display short display self test.
+// press 8 when short display self test is showing for longer self test, press C to exit.
+// press 1 when powering up for slower than normal speed, display stays lit while computing a result.
+// press 2 when powering up for normal speed with display on.
+// press 3 when powering up for faster speed with display on.
+//
+// Notes:
+// Step() runs all instructions in 148uS, if an instruction is faster, it delays until 148us passes.
+// Adjusted refresh delay in updateDisplay() so execution time of ArcCos 0.0001 matches real hardware.
+// step() function get called every 340uS for an effective clock speed of 2.9kHz
+//
+// uses this fast pin library:
 // https://github.com/mikaelpatel/Arduino-GPIO
+//
+
 #include "GPIO.h"
 #include <SoftwareSerial.h>
 
@@ -147,8 +177,8 @@ struct SinclairData_t
 
 boolean resetinprogress = false;
 
-void updateDisplay() {
-
+void updateDisplay()
+{
   byte displayon = SinclairData.display + SinclairData.showwork;
 
   bool dp = false; // needed for logic below, keep initialized to false
@@ -242,7 +272,7 @@ void updateDisplay() {
         delayMicroseconds(2000);
         break;
       case 1:
-        delayMicroseconds(154);
+        delayMicroseconds(155);
         break;
       case 2:
         delayMicroseconds(50);
@@ -256,7 +286,8 @@ void updateDisplay() {
   }
 }
 
-void setup() {
+void setup()
+{
   // put your setup code here, to run once:
 
   //Serial.begin(250000); // Cannot even call this function if displays are enabled. conflicts with use of D0 and D1, see UseSoftwareSerial.ino
@@ -293,7 +324,10 @@ void setup() {
   }
 }
 
-void loop() {
+// timing the loop function using the micros() function, finds it executes every 340uS, for a 2.9kHz clock speed
+
+void loop()
+{
   // put your main code here, to run repeatedly:
 
   char key = readKey();
