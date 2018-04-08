@@ -42,17 +42,6 @@ void allSegmentOutput() {
   SegmentDP.output();
 }
 
-void allSegmentOff() {
-  SegmentA.high();
-  SegmentB.high();
-  SegmentC.high();
-  SegmentD.high();
-  SegmentE.high();
-  SegmentF.high();
-  SegmentG.high();
-  SegmentDP.high();
-}
-
 void allSegmentInput() {
   SegmentA.input();
   SegmentB.input();
@@ -62,15 +51,6 @@ void allSegmentInput() {
   SegmentF.input();
   SegmentG.input();
   SegmentDP.input();
-
-  SegmentA.high();
-  SegmentB.high();
-  SegmentC.high();
-  SegmentD.high();
-  SegmentE.high();
-  SegmentF.high();
-  SegmentG.high();
-  SegmentDP.high();
 }
 
 void allDigitOutput() {
@@ -85,7 +65,41 @@ void allDigitOutput() {
   Digit9.output();
 }
 
-void allDigitOff() {
+void allDigitInput() {
+  Digit1.input();
+  Digit2.input();
+  Digit3.input();
+  Digit4.input();
+  Digit5.input();
+  Digit6.input();
+  Digit7.input();
+  Digit8.input();
+  Digit9.input();
+}
+
+void allSegmentOffCA() {
+  SegmentA.high();
+  SegmentB.high();
+  SegmentC.high();
+  SegmentD.high();
+  SegmentE.high();
+  SegmentF.high();
+  SegmentG.high();
+  SegmentDP.high();
+}
+
+void allSegmentOffCC() {
+  SegmentA.low();
+  SegmentB.low();
+  SegmentC.low();
+  SegmentD.low();
+  SegmentE.low();
+  SegmentF.low();
+  SegmentG.low();
+  SegmentDP.low();
+}
+
+void allDigitOffCA() {
   Digit1.low();
   Digit2.low();
   Digit3.low();
@@ -97,11 +111,167 @@ void allDigitOff() {
   Digit9.low();
 }
 
-byte outputDigit(signed char digit, bool decimalpoint = false) {
+void allDigitOffCC() {
+  Digit1.high();
+  Digit2.high();
+  Digit3.high();
+  Digit4.high();
+  Digit5.high();
+  Digit6.high();
+  Digit7.high();
+  Digit8.high();
+  Digit9.high();
+}
+
+byte outputDigitCC(signed char digit, bool decimalpoint = false) {
 
   byte segmentslit = 0;
 
-  allDigitOff();
+  allDigitOffCC();
+
+  if (decimalpoint)
+  {
+    segmentslit++;
+    SegmentDP.high();
+  }
+  else
+  {
+    SegmentDP.low();
+  }
+
+  switch (digit) {
+    case 0:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.high();
+      SegmentF.high();
+      SegmentG.low();
+      segmentslit += 6;
+      break;
+    case 1:
+      SegmentA.low();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.low();
+      SegmentG.low();
+      segmentslit += 2;
+      break;
+    case 2:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.low();
+      SegmentD.high();
+      SegmentE.high();
+      SegmentF.low();
+      SegmentG.high();
+      segmentslit += 5;
+      break;
+    case 3:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.low();
+      SegmentF.low();
+      SegmentG.high();
+      segmentslit += 5;
+      break;
+    case 4:
+      SegmentA.low();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.high();
+      SegmentG.high();
+      segmentslit += 4;
+      break;
+    case 5:
+      SegmentA.high();
+      SegmentB.low();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.low();
+      SegmentF.high();
+      SegmentG.high();
+      segmentslit += 5;
+      break;
+    case 6:
+      SegmentA.high();
+      SegmentB.low();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.high();
+      SegmentF.high();
+      SegmentG.high();
+      segmentslit += 6;
+      break;
+    case 7:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.low();
+      SegmentG.low();
+      segmentslit += 3;
+      break;
+    case 8:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.high();
+      SegmentE.high();
+      SegmentF.high();
+      SegmentG.high();
+      segmentslit += 7;
+      break;
+    case 9:
+      SegmentA.high();
+      SegmentB.high();
+      SegmentC.high();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.high();
+      SegmentG.high();
+      break;
+      segmentslit += 5;
+    case 10:
+      SegmentA.low();
+      SegmentB.low();
+      SegmentC.low();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.low();
+      SegmentG.high();
+      segmentslit += 1;
+      break;
+    case 99:
+      SegmentA.low();
+      SegmentB.low();
+      SegmentC.low();
+      SegmentD.low();
+      SegmentE.low();
+      SegmentF.low();
+      SegmentG.low();
+      break;
+    default:
+      allSegmentOffCC();
+      break;
+  }
+
+  return segmentslit;
+}
+
+byte outputDigitCA(signed char digit, bool decimalpoint = false) {
+
+  byte segmentslit = 0;
+
+  allDigitOffCA();
 
   if (decimalpoint)
   {
@@ -234,7 +404,7 @@ byte outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentG.high();
       break;
     default:
-      allSegmentOff();
+      allSegmentOffCA();
       break;
   }
 
@@ -243,9 +413,46 @@ byte outputDigit(signed char digit, bool decimalpoint = false) {
 
 byte lastDigit = 0;
 
-void selectDigit(byte digit) {
+void selectDigitCC(byte digit) {
 
-  allDigitOff();
+  allDigitOffCC();
+
+  lastDigit = digit;
+
+  switch (digit) {
+    case 0:
+      Digit1.low();
+      break;
+    case 1:
+      Digit2.low();
+      break;
+    case 2:
+      Digit3.low();
+      break;
+    case 3:
+      Digit4.low();
+      break;
+    case 4:
+      Digit5.low();
+      break;
+    case 5:
+      Digit6.low();
+      break;
+    case 6:
+      Digit7.low();
+      break;
+    case 7:
+      Digit8.low();
+      break;
+    case 8:
+      Digit9.low();
+      break;
+  }
+}
+
+void selectDigitCA(byte digit) {
+
+  allDigitOffCA();
 
   lastDigit = digit;
 
@@ -330,10 +537,10 @@ void setup() {
   setupFastADC();
   testADC();
 
-  allSegmentOff();
+  allSegmentOffCC();
   allSegmentOutput();
 
-  allDigitOff();
+  allDigitOffCC();
   allDigitOutput();
 
   /*
@@ -378,22 +585,22 @@ void loop() {
 
   unsigned long entrytime = micros();
 
-  outputDigit(a);
-  selectDigit(0);
+  outputDigitCC(a);
+  selectDigitCC(0);
   testKNKO();
   delay(2);
-  outputDigit(b);
-  selectDigit(1);
+  outputDigitCC(b);
+  selectDigitCC(1);
   testKNKO();
   delay(2);
-  outputDigit(c);
-  selectDigit(2);
+  outputDigitCC(c);
+  selectDigitCC(2);
   testKNKO();
   delay(2);
 
   unsigned long exittime = micros();
 
-  outputDigit(99);
+  outputDigitCC(99);
 
   Serial.print("exec: ");
   Serial.println(exittime - entrytime);
