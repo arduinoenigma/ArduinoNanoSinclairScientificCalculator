@@ -14,4 +14,4 @@ https://www.tindie.com/products/ArduinoEnigma/sinclair-scientific-calculator-emu
 Board V5:<br>
 https://oshpark.com/projects/OSfM0RLN<br>
 Board V2:<br>
-https://oshpark.com/projects/h1ieZi9m<br>
+https://oshpark.com/projects/zOpXIok8<br>
