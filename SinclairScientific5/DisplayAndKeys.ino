@@ -12,7 +12,6 @@
 // this whole file compiles to less than 1KB of code
 //
 
-
 //
 // A0 = D14
 // A1 = D15
@@ -332,35 +331,6 @@ void selectDigit(byte digit) {
   }
 }
 
-// this function is called by the display routines to show a digit for 2ms before moving to the next one.
-// can do useful work here... instead of delay();
-
-void backgroundWork() {
-
-}
-
-void display() {
-
-  bool dp = false;
-
-  for (byte i = 0; i < 9; i++) {
-
-    //SINCLAIR behavior: turn decimal point on automatically at fixed position
-    if (i == 1) {
-      dp = true;
-    }
-    else
-    {
-      dp = false;
-    }
-
-    outputDigit(digits[i], dp);
-    selectDigit(i);
-
-    backgroundWork();
-  }
-}
-
 void displaySelfTest(bool longtest = false) {
   char c = 0;
 
@@ -457,6 +427,9 @@ void displaySelfTest(bool longtest = false) {
 
 //const char PrintableKeys[19] = "12+E0v-378X654/9^C";
 
+const char KeysKN[10] = "156789234";
+const char KeysKO[10] = "C/*^E0v+-";
+
 byte readKey() {
 
   byte key = 0;
@@ -464,6 +437,7 @@ byte readKey() {
   if (analogRead(7) > 100)
   {
     SinclairData.keyStrobeKN = 1;
+    key = KeysKN[lastSelectDigit - 1];
   }
   else
   {
@@ -473,21 +447,49 @@ byte readKey() {
   if (analogRead(6) > 100)
   {
     SinclairData.keyStrobeKO = 1;
+    key = KeysKO[lastSelectDigit - 1];
   }
   else
   {
     SinclairData.keyStrobeKO = 0;
   }
 
-  if ((lastSelectDigit == 2) && (SinclairData.keyStrobeKO))
+  // ensure C has priority
+  if ((lastSelectDigit == 1) && (SinclairData.keyStrobeKO))
   {
     key = 'C';
   }
 
-  //Serial.print(SinclairData.dActive);
-  //Serial.print(SinclairData.keyStrobeKN);
-  //Serial.print(SinclairData.keyStrobeKO);
-  //Serial.println("");
+  /*
+    Serial.print(lastSelectDigit);
+    Serial.print(SinclairData.dActive);
+    Serial.print(SinclairData.keyStrobeKN);
+    Serial.print(SinclairData.keyStrobeKO);
+    Serial.print(key);
+    Serial.println("");
+  */
+
+  return key;
+}
+
+//since reakKey only reads the active column, this function sweeps through all columns and calls readKey
+byte readKeys()
+{
+  byte k;
+  byte key = 0;
+
+  outputDigit(99);
+  for (byte i = 1; i < 10; i++)
+  {
+    selectDigit(i);
+    k = readKey();
+
+    if (k)
+    {
+      key = k;
+    }
+
+  }
 
   return key;
 }
