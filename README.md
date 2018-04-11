@@ -11,7 +11,7 @@ SinclairScientific5, master branch for v5 boards, the keyboard and display circu
 This simulator is what powers the following emulator:
 https://www.tindie.com/products/ArduinoEnigma/sinclair-scientific-calculator-emulator/
 
-Board V5:
-https://oshpark.com/projects/OSfM0RLN
-Board V2:
-https://oshpark.com/projects/4262Z0Jb
+Board V5:<br>
+https://oshpark.com/projects/OSfM0RLN<br>
+Board V2:<br>
+https://oshpark.com/projects/h1ieZi9m<br>
