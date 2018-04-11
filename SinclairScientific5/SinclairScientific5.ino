@@ -40,7 +40,6 @@
 //
 
 #include "GPIO.h"
-#include <SoftwareSerial.h>
 
 extern void allSegmentOutput();
 extern void allSegmentOff();
@@ -252,8 +251,11 @@ void updateDisplay()
   else {
     // SINCLAIR behavior: dot goes brighter when display is off.
     showdigit = digitoff;
-    digitpos = 2;
-    dp = dp2; // always true
+    if (digitpos > 2) // allow position 1 to be read for C and position 2 to display dot
+    {
+      digitpos = 2;
+      dp = dp2; // always true
+    }
   }
 
   byte segmentslit;
@@ -286,7 +288,7 @@ void updateDisplay()
   else
   {
     // SINCLAIR behavior: makes the display dim when C is pressed, SinclairData.steptime must be reduced below 148 for this delay to take effect.
-    delayMicroseconds(50);
+    //delayMicroseconds(5);
   }
 }
 
@@ -306,10 +308,7 @@ void setup()
   allDigitOff();
   allDigitOutput();
 
-
-  displaySelfTest(true);
-
-  char key = readKey();
+  char key = readKeys();
   SinclairData.showwork = 1;  //takes effect only on 1,2,3
 
   switch (key)
@@ -347,17 +346,14 @@ void loop()
 
   char key = readKey();
 
-  //Serial.print(SinclairData.dActive);
-  if (key == 'A') {
-    //Serial.println(key);
+  if (key == 'C') {
     if (resetinprogress == false) {
-      //Serial.println("here");
       SinclairData.address = 0;
       SinclairData.keyStrobeKN = 0;
       SinclairData.keyStrobeKO = 0;
       SinclairData.keyStrobeKP = 0;
       SinclairData.dActive = 1;
-      SinclairData.steptime = 10; // speed up step() function so updateDisplay() function can control brightness via smaller delayMicrososeconds()
+      SinclairData.steptime = 5; // speed up step() function so updateDisplay() function can control brightness via smaller delayMicrososeconds()
       resetinprogress = true;
     }
   }
