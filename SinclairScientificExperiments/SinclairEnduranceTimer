@@ -1,0 +1,147 @@
+#include <EEPROM.h>
+#include <avr/eeprom.h>
+
+struct timeEvent_t
+{
+  byte init;
+  byte event;
+  unsigned long time;
+}
+TimeEvent;
+
+int eventaddress = 0;
+
+bool ison = false;
+int val = 1024;
+
+void halt()
+{
+  Serial.println(F("halting"));
+
+  do
+  {
+
+  } while (true);
+}
+
+void clearEEPROM()
+{
+  int i;
+
+  Serial.println(F("clearing EEPROM"));
+
+  for (i = 0; i < 1024; i++)
+  {
+    EEPROM.write(i, 255);
+  }
+
+  eventaddress = 0;
+
+  Serial.println(F("done"));
+
+  // uncomment to halt program and allow to start recording records on a clear eeprom
+  halt(); //comment to start recording logs after clearing eeprom
+}
+
+
+void readEvents()
+{
+  int evaddress = eventaddress;
+  int nextevent = 0;
+
+  Serial.println(F("reading stored logs"));
+
+  do
+  {
+    eeprom_read_block((void*)&TimeEvent, (void*)evaddress, sizeof(timeEvent_t));
+
+    if (TimeEvent.init == 42)
+    {
+      Serial.print(F("event found at: "));
+      Serial.println(evaddress);
+      nextevent = evaddress + sizeof(timeEvent_t);
+      if (TimeEvent.event == 0) {
+        Serial.print(F("off at "));
+      }
+      if (TimeEvent.event == 1) {
+        Serial.print(F("on at "));
+      }
+      Serial.println(TimeEvent.time);
+      evaddress += sizeof(timeEvent_t);
+    }
+    else
+    {
+      evaddress++;
+    }
+  } while (evaddress < 1000);
+
+  eventaddress = nextevent;
+
+  Serial.println(F("done"));
+}
+
+
+void writeEvent()
+{
+  eeprom_write_block((void*)&TimeEvent, (void*)eventaddress, sizeof(timeEvent_t));
+  Serial.print(F("written at: "));
+  Serial.println(eventaddress);
+  eventaddress += sizeof(timeEvent_t);
+}
+
+
+void setup() {
+  Serial.begin(9600);
+
+  Serial.print(F("time event structure is: "));
+  Serial.print(sizeof(timeEvent_t));
+  Serial.println(F(" bytes long"));
+
+  readEvents();
+
+  //clearEEPROM(); // comment to preserve prior execution logs
+
+  Serial.println(F("ready to record events"));
+}
+
+
+void loop() {
+  int sensorValue;
+
+  // read the value from the sensor:
+  sensorValue = analogRead(A0);
+
+  val = (val * 4.0 + sensorValue ) / 5.0;
+
+  /*
+    Serial.print(sensorValue);
+    Serial.print(" ");
+    Serial.println(val);
+  */
+
+  if ((val < 950) && (ison == false))
+  {
+    TimeEvent.init = 42;
+    TimeEvent.event = 1;
+    TimeEvent.time = millis();
+    writeEvent();
+
+    ison = true;
+    Serial.print(F("on at "));
+    Serial.println(TimeEvent.time);
+  }
+
+  if ((val > 1000) && (ison == true))
+  {
+    TimeEvent.init = 42;
+    TimeEvent.event = 0;
+    TimeEvent.time = millis();
+    writeEvent();
+
+    ison = false;
+    Serial.print(F("off at "));
+    Serial.println(TimeEvent.time);
+  }
+
+}
+
