@@ -121,12 +121,15 @@ void allKeyRowIdle() {
   KeyRowC.high();
 }
 
-void outputDigit(signed char digit, bool decimalpoint = false) {
+byte outputDigit(signed char digit, bool decimalpoint = false) {
+
+  byte segmentslit = 0;
 
   allDigitOff();
 
   if (decimalpoint)
   {
+    segmentslit++;
     SegmentDP.low();
   }
   else
@@ -143,6 +146,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.low();
       SegmentF.low();
       SegmentG.high();
+      segmentslit += 6;
       break;
     case 1:
       SegmentA.high();
@@ -152,6 +156,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.high();
       SegmentG.high();
+      segmentslit += 2;
       break;
     case 2:
       SegmentA.low();
@@ -161,6 +166,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.low();
       SegmentF.high();
       SegmentG.low();
+      segmentslit += 5;
       break;
     case 3:
       SegmentA.low();
@@ -170,6 +176,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.high();
       SegmentG.low();
+      segmentslit += 5;
       break;
     case 4:
       SegmentA.high();
@@ -179,6 +186,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.low();
       SegmentG.low();
+      segmentslit += 4;
       break;
     case 5:
       SegmentA.low();
@@ -188,6 +196,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.low();
       SegmentG.low();
+      segmentslit += 5;
       break;
     case 6:
       SegmentA.low();
@@ -197,6 +206,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.low();
       SegmentF.low();
       SegmentG.low();
+      segmentslit += 6;
       break;
     case 7:
       SegmentA.low();
@@ -206,6 +216,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.high();
       SegmentG.high();
+      segmentslit += 3;
       break;
     case 8:
       SegmentA.low();
@@ -215,6 +226,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.low();
       SegmentF.low();
       SegmentG.low();
+      segmentslit += 7;
       break;
     case 9:
       SegmentA.low();
@@ -225,6 +237,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentF.low();
       SegmentG.low();
       break;
+      segmentslit += 5;
     case 10:
       SegmentA.high();
       SegmentB.high();
@@ -233,6 +246,7 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       SegmentE.high();
       SegmentF.high();
       SegmentG.low();
+      segmentslit += 1;
       break;
     case 99:
       SegmentA.high();
@@ -247,6 +261,8 @@ void outputDigit(signed char digit, bool decimalpoint = false) {
       allSegmentOff();
       break;
   }
+
+  return segmentslit;
 }
 
 void selectDigit(byte digit) {
@@ -313,9 +329,18 @@ void display() {
   }
 }
 
-void displaySelfTest() {
+
+void displaySelfTest(bool longtest = false) {
+
   char c = 0;
-  bool longtest = false;
+
+  //kitt stuff
+  byte pos = 0;
+  byte p1 = 0;
+  byte p2 = 0;
+  char sign = 0;
+
+  bool kitt = false;
 
   // show 8.8.8.8.8.8.8.8.8.
   for (byte t = 0; t < 75; t++) {
@@ -324,8 +349,11 @@ void displaySelfTest() {
       if (c == '8') {
         longtest = true;
       }
+      if ((longtest == true ) && (c == '2')) {
+        kitt = true;
+      }
       if (c == 'C') {
-        return;
+        goto exitfn;
       }
       outputDigit(8, true);
       selectDigit(j);
@@ -333,8 +361,12 @@ void displaySelfTest() {
     }
   }
 
+  if (kitt) {
+    goto kitt;
+  }
+
   if (!longtest) {
-    return;
+    goto exitfn;
   }
 
   // cycle through 0..9 - on all digits at the same time
@@ -342,7 +374,7 @@ void displaySelfTest() {
     for (byte t = 0; t < 100; t++) {
       for (byte j = 0; j < 9; j++) {
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         outputDigit((i != 11) ? i : 99, (i == 11));
         selectDigit(j);
@@ -355,7 +387,7 @@ void displaySelfTest() {
   for (byte t = 0; t < 100; t++) {
     for (byte j = 0; j < 9; j++) {
       if (readKey() == 'C') {
-        return;
+        goto exitfn;
       }
       outputDigit(j, false);
       selectDigit(j);
@@ -368,7 +400,7 @@ void displaySelfTest() {
     for (byte t = 0; t < 100; t++) {
       for (byte j = 0; j < 9; j++) {
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         outputDigit(j, i == j);
         selectDigit(j);
@@ -382,7 +414,7 @@ void displaySelfTest() {
     for (byte t = 0; t < 100; t++) {
       for (byte i = 0; i < 9; i++) {
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         outputDigit(99, i == (j - 1));
         selectDigit(i);
@@ -397,7 +429,7 @@ void displaySelfTest() {
       for (byte t = 0; t < 20; t++) {
         for (byte k = 0; k < 9; k++) {
           if (readKey() == 'C') {
-            return;
+            goto exitfn;
           }
           outputDigit( ((k == j) && (i != 11)) ? i : 99, ((k == j) && (i == 11)));
           selectDigit(k);
@@ -406,7 +438,53 @@ void displaySelfTest() {
       }
     }
   }
+
+  goto exitfn;
+
+kitt:
+
+  for (byte i = 0; i < 249; i++)
+  {
+    p2 = p1;
+    p1 = pos;
+    pos += sign;
+
+    if (pos == 0) {
+      sign = 1;
+    }
+
+    if (pos == 8) {
+      sign = -1;
+    }
+
+    for (byte t = 0; t < 25; t++) {
+      for (byte j = 0; j < 9; j++) {
+        c = readKey();
+        if (c == 'C') {
+          goto exitfn;
+        }
+        outputDigit(10, false);
+        selectDigit(j);
+        if (j == pos)
+        {
+          delayMicroseconds(1000);
+        } else if (j == p1)
+        {
+          delayMicroseconds(500);
+        } else if (j == p2)
+        {
+          delayMicroseconds(100);
+        } else
+          delayMicroseconds(20);
+      }
+    }
+  }
+
+exitfn:
+  allSegmentOff();
+  allDigitOff();
 }
+
 
 const char PrintableKeys[19] = "12+E0v-378X654/9^C";
 
