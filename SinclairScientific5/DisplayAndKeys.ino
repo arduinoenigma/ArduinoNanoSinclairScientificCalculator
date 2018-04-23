@@ -332,7 +332,16 @@ void selectDigit(byte digit) {
 }
 
 void displaySelfTest(bool longtest = false) {
+
   char c = 0;
+
+  //kitt stuff
+  byte pos = 0;
+  byte p1 = 0;
+  byte p2 = 0;
+  char sign = 0;
+
+  bool kitt = false;
 
   // show 8.8.8.8.8.8.8.8.8.
   for (byte t = 0; t < 75; t++) {
@@ -343,15 +352,22 @@ void displaySelfTest(bool longtest = false) {
       if (c == '8') {
         longtest = true;
       }
+      if ((longtest == true ) && (c == '2')) {
+        kitt = true;
+      }
       if (c == 'C') {
-        return;
+        goto exitfn;
       }
       delay(2);
     }
   }
 
+  if (kitt) {
+    goto kitt;
+  }
+
   if (!longtest) {
-    return;
+    goto exitfn;
   }
 
   // cycle through 0..9 - on all digits at the same time
@@ -361,7 +377,7 @@ void displaySelfTest(bool longtest = false) {
         outputDigit((i != 11) ? i : 99, (i == 11));
         selectDigit(j + 1);
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         delay(2);
       }
@@ -374,7 +390,7 @@ void displaySelfTest(bool longtest = false) {
       outputDigit(j, false);
       selectDigit(j + 1);
       if (readKey() == 'C') {
-        return;
+        goto exitfn;
       }
       delay(2);
     }
@@ -387,7 +403,7 @@ void displaySelfTest(bool longtest = false) {
         outputDigit(j, i == j);
         selectDigit(j + 1);
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         delay(2);
       }
@@ -401,7 +417,7 @@ void displaySelfTest(bool longtest = false) {
         outputDigit(99, i == (j - 1));
         selectDigit(i + 1);
         if (readKey() == 'C') {
-          return;
+          goto exitfn;
         }
         delay(2);
       }
@@ -416,13 +432,59 @@ void displaySelfTest(bool longtest = false) {
           outputDigit( ((k == j) && (i != 11)) ? i : 99, ((k == j) && (i == 11)));
           selectDigit(k + 1);
           if (readKey() == 'C') {
-            return;
+            goto exitfn;
           }
           delay(2);
         }
       }
     }
   }
+
+  goto exitfn;
+
+kitt:
+
+  for (byte i = 0; i < 249; i++)
+  {
+    p2 = p1;
+    p1 = pos;
+    pos += sign;
+
+    if (pos == 0) {
+      sign = 1;
+    }
+
+    if (pos == 8) {
+      sign = -1;
+    }
+
+    for (byte t = 0; t < 25; t++) {
+      for (byte j = 0; j < 9; j++) {
+        c = readKey();
+        if (c == 'C') {
+          goto exitfn;
+        }
+        outputDigit(10, false);
+        selectDigit(j + 1);
+        if (j == pos)
+        {
+          delayMicroseconds(1000);
+        } else if (j == p1)
+        {
+          delayMicroseconds(500);
+        } else if (j == p2)
+        {
+          delayMicroseconds(100);
+        } else
+          delayMicroseconds(20);
+      }
+    }
+  }
+
+exitfn:
+  allSegmentOff();
+  allDigitOff();
+
 }
 
 //const char PrintableKeys[19] = "12+E0v-378X654/9^C";
