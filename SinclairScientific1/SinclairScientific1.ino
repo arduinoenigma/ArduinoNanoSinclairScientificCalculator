@@ -49,10 +49,10 @@ extern void allDigitOutput();
 extern void allDigitOff();
 extern void allKeyRowOff();
 extern void allKeyRowIdle();
-extern void outputDigit(signed char, bool dp = false);
+extern byte outputDigit(signed char, bool dp = false);
 extern void selectDigit(byte);
 extern void display();
-extern void displaySelfTest();
+extern void displaySelfTest(bool longtest = false);
 extern byte readKey();
 
 extern void step();
@@ -255,7 +255,10 @@ void updateDisplay()
     dp = dp2; // always true
   }
 
-  outputDigit(showdigit, dp);
+  byte segmentslit;
+  segmentslit = outputDigit(showdigit, dp);
+  //delayMicroseconds(segmentslit << 2);
+  //delay(segmentslit);
   selectDigit(digitpos);
 
   // adjust case 1 for the following:
