@@ -83,10 +83,17 @@ void readEvents()
 
 void writeEvent()
 {
-  eeprom_write_block((void*)&TimeEvent, (void*)eventaddress, sizeof(timeEvent_t));
-  Serial.print(F("written at: "));
-  Serial.println(eventaddress);
-  eventaddress += sizeof(timeEvent_t);
+  if (eventaddress < 1000)
+  {
+    eeprom_write_block((void*)&TimeEvent, (void*)eventaddress, sizeof(timeEvent_t));
+    Serial.print(F("written at: "));
+    Serial.println(eventaddress);
+    eventaddress += sizeof(timeEvent_t);
+  }
+  else
+  {
+    Serial.println(F("event log full"));
+  }
 }
 
 
@@ -144,4 +151,3 @@ void loop() {
   }
 
 }
-
