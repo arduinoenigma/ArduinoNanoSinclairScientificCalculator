@@ -41,6 +41,7 @@
 
 #include "GPIO.h"
 
+extern void setupFastADC();
 extern void allSegmentOutput();
 extern void allSegmentOff();
 extern void allSegmentInput();
@@ -53,6 +54,7 @@ extern void selectDigit(byte);
 extern void display();
 extern void displaySelfTest(bool longtest = false);
 extern byte readKey();
+extern byte readKeys();
 
 extern void step();
 
@@ -170,11 +172,11 @@ struct SinclairData_t
   byte showwork = 0;         // when 0, display flag controls LED, when 1, LED always on
   byte speed = 1;            // 0 - slow 1 - normal 2 - fast
   byte steptime = 148;       // the step() function will take this many microseconds to execute, uses a delay to eat remaining time if it finishes faster.
+
+  bool resetinprogress = false;
 } SinclairData;
 
 const byte DisplayOrder[9] = {1, 7, 8, 9, 2, 3, 4, 5, 6};
-
-boolean resetinprogress = false;
 
 void updateDisplay()
 {
@@ -270,7 +272,7 @@ void updateDisplay()
   // Arctan 1 takes about 6.6 seconds
   // Arccos of a very small value (e.g. 0.0001) goes into an almost-infinite loop and takes 1 minute, 38 seconds to complete
 
-  if (resetinprogress == false)
+  if (SinclairData.resetinprogress == false)
   {
     switch (SinclairData.speed)
     {
@@ -278,7 +280,7 @@ void updateDisplay()
         delayMicroseconds(2000);
         break;
       case 1:
-        delayMicroseconds(155);
+        delayMicroseconds(140);
         break;
       case 2:
         delayMicroseconds(50);
@@ -298,8 +300,6 @@ void setup()
 
   Serial.begin(250000);
 
-  resetinprogress = false;
-
   setupFastADC();
 
   allSegmentOff();
@@ -307,6 +307,8 @@ void setup()
 
   allDigitOff();
   allDigitOutput();
+
+  SinclairLogo();
 
   char key = readKeys();
   SinclairData.showwork = 1;  //takes effect only on 1,2,3
@@ -339,30 +341,35 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
+  char key;
 
   step();
 
   updateDisplay();
 
-  char key = readKey();
+  key = readKey();
+
+  if (SinclairData.resetinprogress)
+  {
+    if (SinclairData.address > 8) {
+      SinclairData.resetinprogress = false;
+      SinclairData.steptime = 148;
+    }
+    else
+    {
+      //key = readKey();
+    }
+  }
 
   if (key == 'C') {
-    if (resetinprogress == false) {
+    if (SinclairData.resetinprogress == false) {
       SinclairData.address = 0;
       SinclairData.keyStrobeKN = 0;
       SinclairData.keyStrobeKO = 0;
       SinclairData.keyStrobeKP = 0;
       SinclairData.dActive = 1;
       SinclairData.steptime = 5; // speed up step() function so updateDisplay() function can control brightness via smaller delayMicrososeconds()
-      resetinprogress = true;
-    }
-  }
-
-  if (resetinprogress)
-  {
-    if (SinclairData.address > 8) {
-      resetinprogress = false;
-      SinclairData.steptime = 148;
+      SinclairData.resetinprogress = true;
     }
   }
 
