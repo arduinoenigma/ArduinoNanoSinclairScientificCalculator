@@ -331,6 +331,163 @@ void selectDigit(byte digit) {
   }
 }
 
+void SinclairLogo() {
+
+  int showtime = 1;
+
+  for (byte t = 0; t < 14; t++) {
+    if (t > 2)
+    {
+      showtime++;
+    }
+    if (t > 4)
+    {
+      showtime++;
+    }
+    for (int s = 0; s < 400; s++) {
+      delayMicroseconds(120); // this delay is more important than the hyperoptimized logic below. must have off time.
+      for (byte digit = 0; digit < 9; digit++) {
+        switch (digit) {
+          case 0:           // i  (comment out pins that do not change, low is on, high is off)
+            SegmentA.high();
+            SegmentB.high();
+            //SegmentC.low();
+            SegmentD.high();
+            SegmentE.high();
+            //SegmentF.high();
+            SegmentG.high();
+            Digit2.high();
+            Digit2.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit2.low();
+            Digit2.input();
+            break;
+          case 1:           // i
+            //SegmentA.high();
+            //SegmentB.high();
+            //SegmentC.low();
+            //SegmentD.high();
+            //SegmentE.high();
+            //SegmentF.high();
+            //SegmentG.high();
+            Digit7.high();
+            Digit7.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit7.low();
+            Digit7.input();
+            break;
+          case 2:           // l
+            //SegmentA.high();
+            SegmentB.low();
+            //SegmentC.low();
+            //SegmentD.high();
+            //SegmentE.high();
+            //SegmentF.high();
+            //SegmentG.high();
+            Digit5.high();
+            Digit5.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit5.low();
+            Digit5.input();
+            break;
+          case 3:           // n
+            SegmentA.low();
+            //SegmentB.low();
+            //SegmentC.low();
+            //SegmentD.high();
+            SegmentE.low();
+            SegmentF.low();
+            //SegmentG.high();
+            Digit3.high();
+            Digit3.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit3.low();
+            Digit3.input();
+            break;
+          case 4:           // r
+            //SegmentA.low();
+            SegmentB.high();
+            SegmentC.high();
+            //SegmentD.high();
+            //SegmentE.low();
+            //SegmentF.low();
+            //SegmentG.high();
+            Digit8.high();
+            Digit8.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit8.low();
+            Digit9.input();
+            break;
+          case 5:           // c
+            //SegmentA.low();
+            //SegmentB.high();
+            //SegmentC.high();
+            SegmentD.low();
+            //SegmentE.low();
+            //SegmentF.low();
+            //SegmentG.high();
+            Digit4.high();
+            Digit4.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit4.low();
+            Digit4.input();
+            break;
+          case 6:            // S
+            //SegmentA.low();  //low is on
+            //SegmentB.high();
+            SegmentC.low();
+            //SegmentD.low();
+            SegmentE.high();
+            //SegmentF.low();
+            SegmentG.low();
+            Digit1.high();
+            Digit1.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit1.low();
+            Digit1.input();
+            break;
+          case 7:           // a
+            //SegmentA.low();
+            SegmentB.low();
+            //SegmentC.low();
+            //SegmentD.low();
+            SegmentE.low();
+            SegmentF.high();
+            //SegmentG.low();
+            Digit6.high();
+            Digit6.output();
+            if (t > 0) {
+              delayMicroseconds(showtime);
+            }
+            Digit6.low();
+            Digit6.input();
+            break;
+        }
+      }
+    }
+  }
+
+exitsinclair:
+  allSegmentOff();
+  allDigitOff();
+
+}
+
+
 void displaySelfTest(bool longtest = false) {
 
   char c = 0;
