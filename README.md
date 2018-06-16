@@ -1,6 +1,7 @@
 # ArduinoNanoSinclairScientificCalculator
 An Arduino port of Ken Shirriff Sinclair Scientific Calculator Simulator http://righto.com/sinclair
 
+latest version at: https://gitlab.com/arduinoenigma/ArduinoNanoSinclairScientificCalculator
 
 SinclairScientific1, master branch for v1,v2 and v3 boards, updated to latest and greatest, all digits working, timing adjusted to match real calculator
 SinclairScientificExperiments, an old snapshot of the SinclairScientific tree with ALU functions implemented.<br>
